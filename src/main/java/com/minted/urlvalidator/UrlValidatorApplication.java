@@ -36,14 +36,26 @@ public class UrlValidatorApplication implements CommandLineRunner{
 	@Override
 	public void run(String args[]) throws IOException, InterruptedException, ExecutionException {
 		
+		System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+		System.out.println("Starting the validation of fxg json url's");
+		
 	   List<String> fxgJsonURLList = fxgjsonURLGeneratorService.generateFXGJsonURLFromFile(SKU_LIST_PATH);
 	   
-	   System.out.println(LocalDateTime.now());
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+	   System.out.println("Total count of the fxg json url's fetched from db : " + fxgJsonURLList.size());
+	   
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+	   System.out.println("Starting to get the status of the fxg json urls at: " + LocalDateTime.now());
 	   Map<String, String> urlResult = urlValidatorService.fxgJsonUrlValidator(fxgJsonURLList);
 	   
 	   writeResultsToCSV(urlResult);
-	   System.out.println(LocalDateTime.now());
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+	   System.out.println("Finished retrieving the status of the fxg json urls at: " + LocalDateTime.now());
 	   
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+	   System.out.println("The resulting output.csv file will emailed to the recipients in the jenkins job. if the attachment is not received then please check the folder"
+	   		+ "src/main/resources under the workspace in the slave for the output csv file");
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
 	}
 
 	private void writeResultsToCSV(Map<String, String> urlResult) throws IOException {
