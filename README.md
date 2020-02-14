@@ -12,6 +12,22 @@
 #### Test Data:
 1. The sku data is stored in a file known as the skulist.txt. This is under src/main/resources. Please paste the sku list here.
 
+#### DB Connection properties
+Connection to DB is provided in application.properties under src/main/resources folder. The file has three properties related to DB
+1. Host, user and password.
+
+To connect to the new BIDB RDS Aurora servers from this application do the following
+1. Request IT to get access to the new servers
+2. Open a SSH tunnel from localhost to the new Server
+
+Command
+```
+	ssh -f <ssh user>@<bastion ip> -L localhost:3306:<BiDB server host/ip>:3306 -N -i <pem file>.
+```
+	Execute the above command from the directory where the pem file is stored or provide the path to the pem file in the above command.
+3. Update the above properties file with localhost as DB host and 3306 as the port.
+4. Provide the credentials and run the app	
+	
 
 #### Execution:
 1. To execute
