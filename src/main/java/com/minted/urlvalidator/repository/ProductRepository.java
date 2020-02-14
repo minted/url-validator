@@ -15,9 +15,9 @@ public interface ProductRepository extends CrudRepository<ProductFXG, String> {
 			"FROM minted_saved_design sd\n" + 
 			"JOIN saved_design_template sdt ON sd.id = sdt.saved_design_id\n" + 
 			"WHERE sd.product_sku IN (:productSku)\n" + 
-			"AND sd.scene7_url IS NOT NULL\n" + 
 			"AND sd.modification_date >= '2019-01-01'\n" + 
-			"ORDER BY fxg_filename ASC")
+			"AND fxg_filename IS NOT NULL\n"
+			+ "ORDER BY fxg_filename ASC")
 	
 	List<ProductFXG> findByProductSku(@Param("productSku")List<String> productSku);
 
