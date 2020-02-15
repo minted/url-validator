@@ -24,24 +24,30 @@ private static final String HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON = "https:/
 	public List<String> generateFXGJsonURLFromFile(String filePath) throws IOException{
 		 
 		 List<String> productSKU = Files.readAllLines(Paths.get(filePath));
-		 List<ProductFXG> urlList =  productRepositoryImplementation.getTemplates(productSKU);
+		 List<ProductFXG> fxgList =  productRepositoryImplementation.getTemplates(productSKU);
 		   
 		   List<ProductTemplates> templatesList = productRepositoryImplementation.getAllTemplates(productSKU);
 		   
 		   List<String> fxgJSONURLList = new ArrayList<String>();
-		   for (ProductFXG url : urlList) {
-			   if(!url.getFxg_filename().isEmpty()) {
-				   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + url.getFxg_filename() + "?sku=" + url.getProductSku());
 		   
+		   if(!fxgList.isEmpty() || fxgList.size() != 0) {
+			   for (ProductFXG url : fxgList) {
+				   if(!url.getFxg_filename().isEmpty()) {
+					   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + url.getFxg_filename() + "?sku=" + url.getProductSku());
+			   
+				   }
 			   }
 		   }
 		   
-		   for (ProductTemplates string : templatesList) {
-			   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + string.getLinerTemplate() + "?sku=" + string.getProductSku());
-			   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + string.getRapTemplate() + "?sku=" + string.getProductSku());
-			   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + string.getRcpTemplate() + "?sku=" + string.getProductSku());
-			   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + string.getSkinnywrapTemplate() + "?sku=" + string.getProductSku());
-		   }
+		   if(templatesList.size() != 0 || !templatesList.isEmpty()) {
+			   for (ProductTemplates template : templatesList) {
+				   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + template.getLinerTemplate() + "?sku=" + template.getProductSku());
+				   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + template.getRapTemplate() + "?sku=" + template.getProductSku());
+				   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + template.getRcpTemplate() + "?sku=" + template.getProductSku());
+				   fxgJSONURLList.add(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON + template.getSkinnywrapTemplate() + "?sku=" + template.getProductSku());
+			   }
+		   } 
+		   
 		   return fxgJSONURLList;
 	}
 
