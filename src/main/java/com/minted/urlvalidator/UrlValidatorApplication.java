@@ -21,7 +21,7 @@ import com.minted.urlvalidator.service.URLValidatorService;
 public class UrlValidatorApplication implements CommandLineRunner{
 	
 	
-	private static final String SKU_LIST_PATH = "src/main/resources/skulist_master.txt";
+	private static final String SKU_LIST_PATH = "skulist";
 	
 	@Autowired
 	private FxgJSONURLGeneratorService fxgjsonURLGeneratorService;
@@ -46,6 +46,9 @@ public class UrlValidatorApplication implements CommandLineRunner{
 		
 	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------"); 
 	   System.out.println("Starting to get the status of the fxg json urls at: " + LocalDateTime.now()); 
+	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------"); 
+	   System.out.println("Keep your fingers crossed. The url's with 500 errors will be printed on the console, if any"); 
+	   
 	   Map<String, String> urlResult = urlValidatorService.fxgJsonUrlValidator(fxgJsonURLList);
 	   writeResultsToCSV(urlResult, "output.csv"); 
 	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
