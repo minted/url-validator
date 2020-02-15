@@ -42,9 +42,11 @@ public class URLValidatorService {
 
 			}catch(HttpServerErrorException serverErrorException) {
 				resultMap.put(url, serverErrorException.getStatusCode().toString());
+				System.out.println(url.concat(":").concat(serverErrorException.getStatusCode().toString()));
 
 			}catch(HttpClientErrorException clientErrorException) {
 				resultMap.put(url, clientErrorException.getStatusCode().toString());
+				System.out.println(url.concat(":").concat(clientErrorException.getStatusCode().toString()));
 			}
 
 		}
