@@ -22,7 +22,7 @@ import com.minted.urlvalidator.service.URLValidatorService;
 @EnableAsync
 public class UrlValidatorApplication implements CommandLineRunner {
 	
-private static final String SKU_LIST_PATH = "skulist";
+private static final String SKU_LIST_PATH = "test-sku-data";
 	
 	@Autowired
 	private FxgJSONURLGeneratorService fxgjsonURLGeneratorService;
