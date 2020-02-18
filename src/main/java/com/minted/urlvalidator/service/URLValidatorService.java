@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -36,17 +38,23 @@ public class URLValidatorService {
 		for (String url : urlList) {
 			allFutures.add(endpointCall.callUrl(url, entity));
 		}
-		CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
 		
 		for (int i = 0; i < urlList.size(); i++) {
 			try {
 				resultMap.put(urlList.get(i), allFutures.get(i).get().getStatusCode().toString());
 				System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + allFutures.get(i).get().getStatusCode());
-			}catch(HttpServerErrorException serverException) {
-				resultMap.put(urlList.get(i), serverException.getStatusCode().toString());
-				System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + serverException.getStatusCode().toString());
+			}catch(ExecutionException serverException) {
+				Throwable th = serverException.getCause();
+				if(th instanceof HttpServerErrorException) {
+					resultMap.put(urlList.get(i), ((HttpServerErrorException) th).getStatusCode().toString());
+					System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + ((HttpServerErrorException) th).getStatusCode().toString());
+				}
 			}catch(HttpClientErrorException clientException) {
-				resultMap.put(urlList.get(i), clientException.getStatusCode().toString());
+				Throwable th = clientException.getCause();
+				if(th instanceof HttpServerErrorException) {
+					resultMap.put(urlList.get(i), ((HttpServerErrorException) th).getStatusCode().toString());
+					System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + ((HttpServerErrorException) th).getStatusCode().toString());
+				}
 			}
 		}
 		return resultMap;
