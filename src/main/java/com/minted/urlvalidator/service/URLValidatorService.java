@@ -54,8 +54,6 @@ public class URLValidatorService {
 	    	allRubricFutures.add(endpointCall.callUrl(url, entity));
 	    	});
 		
-		
-		
 		for (int i = 0; i < urlList.size(); i++) {
 			try {
 				fxgurl= urlList.get(i);
@@ -63,20 +61,27 @@ public class URLValidatorService {
 				 String rubricResponseBody = allRubricFutures.get(i).get().getBody().toString();
 				 String scene7StatusCode = allScene7Futures.get(i).get().getStatusCode().toString();
 				 String scene7ResponseBody = allScene7Futures.get(i).get().getBody().toString();
+				 if(!rubricResponseBody.equalsIgnoreCase(scene7ResponseBody)) {
+					 fxgJsonOutputObjectList.add(new FxgJsonOutputObject(fxgurl,rubricStatusCode,null,scene7StatusCode,null,"Rubric and Scene7 Content mismatch"));
+					   log.info("Rubric Conent and Scene7 Content doesnt match");
+					   log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,rubricStatusCode,scene7StatusCode);
+					   log.info("--------------------------------------------------------------------------------------------------");
+
+				 }
 			}catch(ExecutionException serverException) {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
 					try {
 				
-							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
-									allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString() ));
+							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
+									allScene7Futures.get(i).get().getStatusCode().toString(),null,"Internal Server error from Rubric"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,((HttpServerErrorException) th).getStatusCode().toString(),allScene7Futures.get(i).get().getStatusCode());
 							log.info("--------------------------------------------------------------------------------------------------");
 					}catch(ExecutionException executionException) {
 						Throwable thr = executionException.getCause();
 						if(thr instanceof HttpServerErrorException) {
-							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
-									((HttpServerErrorException) thr).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusText()));
+							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
+									((HttpServerErrorException) thr).getStatusCode().toString(),null,"Internal Server error from Scene7"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl, ((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusCode().toString());
 							log.info("--------------------------------------------------------------------------------------------------");
 							
@@ -104,11 +109,9 @@ public class URLValidatorService {
             header.append(CSV_SEPARATOR);
             header.append("RubricStatusCode");
             header.append(CSV_SEPARATOR);
-            header.append("RubricStatusBody");
-            header.append(CSV_SEPARATOR);
             header.append("S7StatusCode");
             header.append(CSV_SEPARATOR);
-            header.append("S7StatusBody");
+            header.append("ReasonForFailure");
             bw.write(header.toString());
             bw.newLine();
             for (FxgJsonOutputObject fxgJsonOutputObject : fxgJsonOutputObjectList)
@@ -118,11 +121,9 @@ public class URLValidatorService {
                 oneLine.append(CSV_SEPARATOR);
                 oneLine.append(fxgJsonOutputObject.getRubricStatusCode());
                 oneLine.append(CSV_SEPARATOR);
-                oneLine.append(fxgJsonOutputObject.getRubricStatusBody());
-                oneLine.append(CSV_SEPARATOR);
                 oneLine.append(fxgJsonOutputObject.getS7StatusCode());
                 oneLine.append(CSV_SEPARATOR);
-                oneLine.append(fxgJsonOutputObject.getS7StatusBody());
+                oneLine.append(fxgJsonOutputObject.getComments());
                 bw.write(oneLine.toString());
                 bw.newLine();
             }
