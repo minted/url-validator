@@ -1,62 +1,124 @@
 
 package com.minted.urlvalidator.service;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.function.BiFunction;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+
+import com.minted.urlvalidator.model.FxgJsonOutputObject;
 
 @Service
 public class URLValidatorService {
 	
+	Logger log = LoggerFactory.getLogger(URLValidatorService.class);
 	
 	@Autowired
 	private EndpointCall endpointCall;
 	
+	
+	private static final String CSV_SEPARATOR = "|";
+	
+	
+			
+	private List<CompletableFuture<ResponseEntity<String>>> allRubricFutures = new ArrayList<>();
+	
+	private List<CompletableFuture<ResponseEntity<String>>> allScene7Futures = new ArrayList<>();
+	
 	@SuppressWarnings("unchecked")
-	public Map<String,String>  fxgJsonUrlValidator(List<String> urlList) throws InterruptedException, ExecutionException{
+	public void fxgJsonResponseComparator(List<String> urlList) throws InterruptedException, ExecutionException{
 
-		Map<String,String> resultMap = new HashMap<String, String>();
-		List<CompletableFuture<ResponseEntity<String>>> allFutures = new ArrayList<>();
-		
+	    List<FxgJsonOutputObject> fxgJsonOutputObjectList = new ArrayList<FxgJsonOutputObject>();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("cookie" , "renderEndpoint=rubric");
 		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
 		
-		for (String url : urlList) {
-			allFutures.add(endpointCall.callUrl(url, entity));
-		}
+		urlList.forEach(url -> {
+			allScene7Futures.add(endpointCall.callUrl(url, null));
+	    	allRubricFutures.add(endpointCall.callUrl(url, entity));
+	    	});
+		
+		
 		
 		for (int i = 0; i < urlList.size(); i++) {
 			try {
-				resultMap.put(urlList.get(i), allFutures.get(i).get().getStatusCode().toString());
-				System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + allFutures.get(i).get().getStatusCode());
+				fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),allRubricFutures.get(i).get().getStatusCode().toString(),allRubricFutures.get(i).get().getBody().toString(),
+						allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString()));
+				log.info("URL: {} | Status: {} ",urlList.get(i),allRubricFutures.get(i).get().getStatusCode().toString());
 			}catch(ExecutionException serverException) {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
-					resultMap.put(urlList.get(i), ((HttpServerErrorException) th).getStatusCode().toString());
-					System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + ((HttpServerErrorException) th).getStatusCode().toString());
-				}
-			}catch(HttpClientErrorException clientException) {
-				Throwable th = clientException.getCause();
-				if(th instanceof HttpServerErrorException) {
-					resultMap.put(urlList.get(i), ((HttpServerErrorException) th).getStatusCode().toString());
-					System.out.println("URL: " + urlList.get(i) + ":   \t Status : " + ((HttpServerErrorException) th).getStatusCode().toString());
+					fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
+							allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString() ));
+					log.info("URL: {} | Status: {} ",urlList.get(i),((HttpServerErrorException) th).getStatusCode().toString());	
 				}
 			}
+			
 		}
-		return resultMap;
+		log.info("Writing the results to file");
+		writeToCSV(fxgJsonOutputObjectList, "src/main/resources/report/resultfile");
+		
 	}
+	
+	
+    private static void writeToCSV(List<FxgJsonOutputObject> fxgJsonOutputObjectList, String filePath)
+    {
+        try
+        {
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "UTF-8"));
+            
+            StringBuffer header = new StringBuffer();
+            header.append("FXG-JSON URL");
+            header.append(CSV_SEPARATOR);
+            header.append("RubricStatusCode");
+            header.append(CSV_SEPARATOR);
+            header.append("RubricStatusBody");
+            header.append(CSV_SEPARATOR);
+            header.append("S7StatusCode");
+            header.append(CSV_SEPARATOR);
+            header.append("S7StatusBody");
+            bw.write(header.toString());
+            bw.newLine();
+            for (FxgJsonOutputObject fxgJsonOutputObject : fxgJsonOutputObjectList)
+            {
+            	StringBuffer oneLine = new StringBuffer();
+                oneLine.append(fxgJsonOutputObject.getUrl());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getRubricStatusCode());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getRubricStatusBody());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getS7StatusCode());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getS7StatusBody());
+                bw.write(oneLine.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (UnsupportedEncodingException e) {}
+        catch (FileNotFoundException e){}
+        catch (IOException e){}
+    }
 }

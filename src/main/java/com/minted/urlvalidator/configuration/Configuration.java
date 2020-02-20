@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
-import com.minted.urlvalidator.RejectedExecutionHandlerImpl;
+import com.minted.urlvalidator.service.RejectedExecutionHandlerImpl;
 
 
 @org.springframework.context.annotation.Configuration
