@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.minted.urlvalidator.model.FxgJsonOutputObject;
 import com.minted.urlvalidator.service.FxgJSONURLGeneratorService;
 import com.minted.urlvalidator.service.URLValidatorService;
 
@@ -58,7 +59,12 @@ public class UrlValidatorApplication implements CommandLineRunner {
 	   
 	   logger.info("--------------------------------------------------------------------------------------------------------------------------------"); 
 	   logger.info("Keep your fingers crossed. The service returns the status of the URL's for Rubric and Scene7 along with the response body"); 
-	   urlValidatorService.fxgJsonResponseComparator(fxgJsonURLList);
+	   
+	   List<FxgJsonOutputObject> fxgJsonOutputObjectList =  urlValidatorService.fxgJsonResponseComparator(fxgJsonURLList);
+	   logger.info("Writing the results to file");
+	   
+	   urlValidatorService.writeToCSV(fxgJsonOutputObjectList, "src/main/resources/report/resultfile");
+	   
 	   logger.info("--------------------------------------------------------------------------------------------------------------------------------");
 	   logger.info("Finished retrieving the status of the fxg json urls at:{} : and list of URL's : {} ",LocalDateTime.now() , fxgJsonURLList.size());
 	   logger.info("The resulting output.csv file will emailed to the recipients in the jenkins job. if the attachment is not received then please check the folder src/main/resources under the workspace in the slave for the output csv file" ); 

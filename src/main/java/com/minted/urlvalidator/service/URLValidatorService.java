@@ -20,7 +20,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.HttpStatusCodeException;
 
 import com.minted.urlvalidator.model.FxgJsonOutputObject;
 
@@ -42,7 +41,7 @@ public class URLValidatorService {
 	private List<CompletableFuture<ResponseEntity<String>>> allScene7Futures = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
-	public void fxgJsonResponseComparator(List<String> urlList) throws InterruptedException, ExecutionException{
+	public List<FxgJsonOutputObject> fxgJsonResponseComparator(List<String> urlList) throws InterruptedException, ExecutionException{
 		
 		String fxgurl = null;
 	    List<FxgJsonOutputObject> fxgJsonOutputObjectList = new ArrayList<FxgJsonOutputObject>();
@@ -64,15 +63,6 @@ public class URLValidatorService {
 				 String rubricResponseBody = allRubricFutures.get(i).get().getBody().toString();
 				 String scene7StatusCode = allScene7Futures.get(i).get().getStatusCode().toString();
 				 String scene7ResponseBody = allScene7Futures.get(i).get().getBody().toString();
-				
-				
-				fxgJsonOutputObjectList.add(new FxgJsonOutputObject(fxgurl,rubricStatusCode,rubricResponseBody,scene7StatusCode,scene7ResponseBody));
-				log.info("URL: {} ",fxgurl);
-				log.info("Rubric Status Code: {} ",rubricStatusCode);
-				log.info("Rubric Status Message: {} ",rubricResponseBody);
-				log.info("Scene7 Status code: {} ",scene7StatusCode);
-				log.info("Scene7 Status Message: {} ",scene7ResponseBody);
-				log.info("--------------------------------------------------------------------------------------------------");
 			}catch(ExecutionException serverException) {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
@@ -80,22 +70,14 @@ public class URLValidatorService {
 				
 							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
 									allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString() ));
-							log.info("URL: {} ",fxgurl);
-							log.info("Rubric Status Code: {} ",((HttpServerErrorException) th).getStatusCode().toString());
-							log.info("Rubric Status Message: {} ",((HttpServerErrorException) th).getStatusText());
-							log.info("Scene7 Status code: {} ",allScene7Futures.get(i).get().getStatusCode());
-							log.info("Scene7 Status Message: {} ",allScene7Futures.get(i).get().getBody().toString());
+							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,((HttpServerErrorException) th).getStatusCode().toString(),allScene7Futures.get(i).get().getStatusCode());
 							log.info("--------------------------------------------------------------------------------------------------");
 					}catch(ExecutionException executionException) {
 						Throwable thr = executionException.getCause();
 						if(thr instanceof HttpServerErrorException) {
 							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
 									((HttpServerErrorException) thr).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusText()));
-							log.info("URL: {} ",fxgurl);
-							log.info("Rubric Status Code: {} ",((HttpServerErrorException) th).getStatusCode().toString());
-							log.info("Rubric Status Message: {} ",((HttpServerErrorException) th).getStatusText());
-							log.info("Scene7 Status code: {} ",((HttpServerErrorException) thr).getStatusCode().toString());
-							log.info("Scene7 Status Message: {} ",((HttpServerErrorException) thr).getStatusText());
+							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl, ((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusCode().toString());
 							log.info("--------------------------------------------------------------------------------------------------");
 							
 						}
@@ -105,13 +87,13 @@ public class URLValidatorService {
 			}
 			
 		}
-		log.info("Writing the results to file");
-		writeToCSV(fxgJsonOutputObjectList, "src/main/resources/report/resultfile");
+		return fxgJsonOutputObjectList;
+		
 		
 	}
 	
 	
-    private static void writeToCSV(List<FxgJsonOutputObject> fxgJsonOutputObjectList, String filePath)
+    public  void writeToCSV(List<FxgJsonOutputObject> fxgJsonOutputObjectList, String filePath)
     {
         try
         {
