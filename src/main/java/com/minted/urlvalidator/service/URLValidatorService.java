@@ -8,12 +8,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -64,13 +59,23 @@ public class URLValidatorService {
 			try {
 				fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),allRubricFutures.get(i).get().getStatusCode().toString(),allRubricFutures.get(i).get().getBody().toString(),
 						allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString()));
-				log.info("URL: {} | Status: {} ",urlList.get(i),allRubricFutures.get(i).get().getStatusCode().toString());
+				log.info("URL: {} ",urlList.get(i));
+				log.info("Rubric Status Code: {} ",allRubricFutures.get(i).get().getStatusCode().toString());
+				log.info("Rubric Status Message: {} ",allRubricFutures.get(i).get().getBody().toString());
+				log.info("Scene7 Status code: {} ",allScene7Futures.get(i).get().getStatusCode());
+				log.info("Scene7 Status Message: {} ",allScene7Futures.get(i).get().getBody().toString());
+				log.info("--------------------------------------------------------------------------------------------------");
 			}catch(ExecutionException serverException) {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
 					fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) th).getStatusText(),
 							allScene7Futures.get(i).get().getStatusCode().toString(),allScene7Futures.get(i).get().getBody().toString() ));
-					log.info("URL: {} | Status: {} ",urlList.get(i),((HttpServerErrorException) th).getStatusCode().toString());	
+					log.info("URL: {} ",urlList.get(i));
+					log.info("Rubric Status Code: {} ",((HttpServerErrorException) th).getStatusCode().toString());
+					log.info("Rubric Status Message: {} ",((HttpServerErrorException) th).getStatusText());
+					log.info("Scene7 Status code: {} ",allScene7Futures.get(i).get().getStatusCode());
+					log.info("Scene7 Status Message: {} ",allScene7Futures.get(i).get().getBody().toString());
+					log.info("--------------------------------------------------------------------------------------------------");
 				}
 			}
 			
