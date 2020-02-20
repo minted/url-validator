@@ -1,4 +1,4 @@
-package com.minted.urlvalidator;
+package com.minted.urlvalidator.service;
 
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;

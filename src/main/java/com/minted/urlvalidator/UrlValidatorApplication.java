@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,7 +24,9 @@ import com.minted.urlvalidator.service.URLValidatorService;
 @EnableAsync
 public class UrlValidatorApplication implements CommandLineRunner {
 	
-private static final String SKU_LIST_PATH = "test-sku-data";
+	private static final String SKU_LIST_PATH = "test-sku-data";
+	
+	private Logger logger = LoggerFactory.getLogger(UrlValidatorApplication.class);
 	
 	@Autowired
 	private FxgJSONURLGeneratorService fxgjsonURLGeneratorService;
@@ -31,8 +35,8 @@ private static final String SKU_LIST_PATH = "test-sku-data";
 	private URLValidatorService urlValidatorService;
 	
 	@Autowired
-    private static ConfigurableApplicationContext context;
-
+	private static ConfigurableApplicationContext context;
+	
 	public static void main(String[] args) {
 		context = SpringApplication.run(UrlValidatorApplication.class, args);
 		context.close();
@@ -41,35 +45,25 @@ private static final String SKU_LIST_PATH = "test-sku-data";
 	
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-		System.out.println("Starting the validation of fxg json url's");
+		logger.info("--------------------------------------------------------------------------------------------------------------------------------");
+		logger.info("Starting the validation of fxg json url's");
 		
 	   List<String> fxgJsonURLList = fxgjsonURLGeneratorService.generateFXGJsonURLFromFile(SKU_LIST_PATH);
 	   
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-	   System.out.println("Total count of the fxg json url's fetched from db : " + fxgJsonURLList.size());
+	   logger.info("--------------------------------------------------------------------------------------------------------------------------------");
+	   logger.info("Total count of the fxg json url's fetched from db : {}",fxgJsonURLList.size());
 		
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------"); 
-	   System.out.println("Starting to get the status of the fxg json urls at: " + LocalDateTime.now()); 
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------"); 
-	   System.out.println("Keep your fingers crossed. The url's with 500 errors will be printed on the console, if any"); 
+	   logger.info("--------------------------------------------------------------------------------------------------------------------------------"); 
+	   logger.info("Starting to get the status of the fxg json urls at: {}",LocalDateTime.now()); 
 	   
-	   Map<String, String> urlResult = urlValidatorService.fxgJsonUrlValidator(fxgJsonURLList);
-	   writeResultsToCSV(urlResult, "output.csv"); 
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-	   System.out.println("Finished retrieving the status of the fxg json urls at: " + LocalDateTime.now() + ": list of URL's: " + urlResult.size());
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------"); 
-	   System.out.println("The resulting output.csv file will emailed to the recipients in the jenkins job. if the attachment is not received then please check the folder"+
-						  "src/main/resources under the workspace in the slave for the output csv file" ); 
-	   System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
+	   logger.info("--------------------------------------------------------------------------------------------------------------------------------"); 
+	   logger.info("Keep your fingers crossed. The service returns the status of the URL's for Rubric and Scene7 along with the response body"); 
+	   urlValidatorService.fxgJsonResponseComparator(fxgJsonURLList);
+	   logger.info("--------------------------------------------------------------------------------------------------------------------------------");
+	   logger.info("Finished retrieving the status of the fxg json urls at:{} : and list of URL's : {} ",LocalDateTime.now() , fxgJsonURLList.size());
+	   logger.info("The resulting output.csv file will emailed to the recipients in the jenkins job. if the attachment is not received then please check the folder src/main/resources under the workspace in the slave for the output csv file" ); 
+	   logger.info("--------------------------------------------------------------------------------------------------------------------------------");
 	   
 		
 	}
-	private void writeResultsToCSV(Map<String, String> urlResult, String fileName) throws IOException {
-		Path out = Paths.get("src/main/resources/report/" + fileName);
-		Files.write(out, () -> urlResult.entrySet().stream()
-			    .<CharSequence>map(e -> e.getKey() + "," + e.getValue())
-			    .iterator());
-	}
-	
 }
