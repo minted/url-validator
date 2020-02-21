@@ -36,25 +36,35 @@ public class URLValidatorService {
 	
 	
 			
-	private List<CompletableFuture<ResponseEntity<String>>> allRubricFutures = new ArrayList<>();
 	
-	private List<CompletableFuture<ResponseEntity<String>>> allScene7Futures = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
 	public List<FxgJsonOutputObject> fxgJsonResponseComparator(List<String> urlList) throws InterruptedException, ExecutionException{
 		
+		 List<CompletableFuture<ResponseEntity<String>>> allRubricFutures = new ArrayList<>();
+		
+		 List<CompletableFuture<ResponseEntity<String>>> allScene7Futures = new ArrayList<>();
+		
 		String fxgurl = null;
+		
 	    List<FxgJsonOutputObject> fxgJsonOutputObjectList = new ArrayList<FxgJsonOutputObject>();
+	    
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("cookie" , "renderEndpoint=rubric");
 		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
 		
-		urlList.forEach(url -> {
-			allScene7Futures.add(endpointCall.callUrl(url, null));
-	    	allRubricFutures.add(endpointCall.callUrl(url, entity));
-	    	});
+		log.info("Started sending the requests to rubric endpoint");
+		for(int i=0; i<(urlList.size()-1); i++) {
+			allRubricFutures.add(endpointCall.callUrl(urlList.get(i), entity));
+		}
 		
-		for (int i = 0; i < urlList.size(); i++) {
+		log.info("Started sending the requests to scene7 endpoint");
+		for(int i=0; i<(urlList.size()-1); i++) {
+			allScene7Futures.add(endpointCall.callUrl(urlList.get(i), null));
+		}
+		
+		log.info("Consolidating the requests from scene7 and rubric and working on response from both");
+		for (int i = 0; i < urlList.size()-1; i++) {
 			try {
 				fxgurl= urlList.get(i);
 				 String rubricStatusCode = allRubricFutures.get(i).get().getStatusCode().toString();
@@ -63,8 +73,7 @@ public class URLValidatorService {
 				 String scene7ResponseBody = allScene7Futures.get(i).get().getBody().toString();
 				 if(!rubricResponseBody.equalsIgnoreCase(scene7ResponseBody)) {
 					 fxgJsonOutputObjectList.add(new FxgJsonOutputObject(fxgurl,rubricStatusCode,null,scene7StatusCode,null,"Rubric and Scene7 Content mismatch"));
-					   log.info("Rubric Conent and Scene7 Content doesnt match");
-					   log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,rubricStatusCode,scene7StatusCode);
+					   log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {} | Reason : {}",fxgurl,rubricStatusCode,scene7StatusCode, "Rubric Content and Scene7 Content doesnt match");
 					   log.info("--------------------------------------------------------------------------------------------------");
 
 				 }
@@ -72,7 +81,6 @@ public class URLValidatorService {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
 					try {
-				
 							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
 									allScene7Futures.get(i).get().getStatusCode().toString(),null,"Internal Server error from Rubric"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,((HttpServerErrorException) th).getStatusCode().toString(),allScene7Futures.get(i).get().getStatusCode());
@@ -83,10 +91,8 @@ public class URLValidatorService {
 							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
 									((HttpServerErrorException) thr).getStatusCode().toString(),null,"Internal Server error from Scene7"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl, ((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusCode().toString());
-							log.info("--------------------------------------------------------------------------------------------------");
-							
+							log.info("--------------------------------------------------------------------------------------------------");	
 						}
-						
 					}
 				}
 			}
