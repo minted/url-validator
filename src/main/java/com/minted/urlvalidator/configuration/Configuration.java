@@ -20,9 +20,9 @@ public class Configuration {
 	@Bean
 	public Executor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(2);
-		executor.setMaxPoolSize(100);
-		executor.setQueueCapacity(500);
+		executor.setCorePoolSize(10);
+		executor.setMaxPoolSize(200);
+		executor.setQueueCapacity(2000);
 		executor.setThreadNamePrefix("URLValidator-");
 		executor.setRejectedExecutionHandler(new RejectedExecutionHandlerImpl());
 		executor.initialize();
