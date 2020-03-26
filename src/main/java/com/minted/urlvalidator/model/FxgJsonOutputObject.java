@@ -2,10 +2,12 @@ package com.minted.urlvalidator.model;
 
 public class FxgJsonOutputObject {
 	
-	public FxgJsonOutputObject(String url, String rubricStatusCode, String rubricStatusBody, String s7StatusCode,
+	public FxgJsonOutputObject(String url,String sku, String template, String rubricStatusCode, String rubricStatusBody, String s7StatusCode,
 			String s7StatusBody, String comments) {
 		super();
 		this.url = url;
+		this.sku = sku;
+		this.template = template;
 		this.rubricStatusCode = rubricStatusCode;
 		this.rubricStatusBody = rubricStatusBody;
 		this.s7StatusCode = s7StatusCode;
@@ -13,11 +15,14 @@ public class FxgJsonOutputObject {
 		this.comments=comments;
 	}
 	private String url;
+	private String sku;
+	private String template;
 	private String rubricStatusCode;
 	private String rubricStatusBody;
 	private String s7StatusCode;
 	private String s7StatusBody;
 	private String comments;
+	
 	public String getUrl() {
 		return url;
 	}
@@ -53,6 +58,18 @@ public class FxgJsonOutputObject {
 	}
 	public void setComments(String comments) {
 		this.comments = comments;
+	}
+	public String getSku() {
+		return sku;
+	}
+	public void setSku(String sku) {
+		this.sku = sku;
+	}
+	public String getTemplate() {
+		return template;
+	}
+	public void setTemplate(String template) {
+		this.template = template;
 	}
 	
 

@@ -27,6 +27,8 @@ import com.minted.urlvalidator.model.FxgJsonOutputObject;
 public class URLValidatorService {
 	
 	Logger log = LoggerFactory.getLogger(URLValidatorService.class);
+	private static final String HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON = "https://www.minted.com/personalize/fxg/json/fresh/";
+
 	
 	@Autowired
 	private EndpointCall endpointCall;
@@ -41,6 +43,8 @@ public class URLValidatorService {
 		 List<CompletableFuture<ResponseEntity<String>>> allScene7Futures = new ArrayList<>();
 		
 		String fxgurl = null;
+		String sku = null;
+		String template = null;
 		
 	    List<FxgJsonOutputObject> fxgJsonOutputObjectList = new ArrayList<FxgJsonOutputObject>();
 	    
@@ -61,13 +65,15 @@ public class URLValidatorService {
 		log.info("Consolidating the requests from scene7 and rubric and working on response from both");
 		for (int i = 0; i < urlList.size()-1; i++) {
 			try {
-				fxgurl= urlList.get(i);
+				 fxgurl= urlList.get(i);
+				 sku = urlList.get(i).replaceAll(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON, "").split("\\?sku=")[1];
+				 template = urlList.get(i).replaceAll(HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON, "").split("\\?sku=")[0];
 				 String rubricStatusCode = allRubricFutures.get(i).get().getStatusCode().toString();
 				 String rubricResponseBody = allRubricFutures.get(i).get().getBody().toString();
 				 String scene7StatusCode = allScene7Futures.get(i).get().getStatusCode().toString();
 				 String scene7ResponseBody = allScene7Futures.get(i).get().getBody().toString();
 				 if(!rubricResponseBody.equalsIgnoreCase(scene7ResponseBody)) {
-					 fxgJsonOutputObjectList.add(new FxgJsonOutputObject(fxgurl,rubricStatusCode,null,scene7StatusCode,null,"Rubric and Scene7 Content mismatch"));
+					 fxgJsonOutputObjectList.add(new FxgJsonOutputObject(fxgurl,sku,template, rubricStatusCode,null,scene7StatusCode,null,"Rubric and Scene7 Content mismatch"));
 					   log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {} | Reason : {}",fxgurl,rubricStatusCode,scene7StatusCode, "Rubric Content and Scene7 Content doesnt match");
 					   log.info("--------------------------------------------------------------------------------------------------");
 
@@ -76,14 +82,14 @@ public class URLValidatorService {
 				Throwable th = serverException.getCause();
 				if(th instanceof HttpServerErrorException) {
 					try {
-							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
+							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),sku,template, ((HttpServerErrorException) th).getStatusCode().toString(),null,
 									allScene7Futures.get(i).get().getStatusCode().toString(),null,"Internal Server error from Rubric"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl,((HttpServerErrorException) th).getStatusCode().toString(),allScene7Futures.get(i).get().getStatusCode());
 							log.info("--------------------------------------------------------------------------------------------------");
 					}catch(ExecutionException executionException) {
 						Throwable thr = executionException.getCause();
 						if(thr instanceof HttpServerErrorException) {
-							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),((HttpServerErrorException) th).getStatusCode().toString(),null,
+							fxgJsonOutputObjectList.add(new FxgJsonOutputObject((urlList.get(i)),sku,template,((HttpServerErrorException) th).getStatusCode().toString(),null,
 									((HttpServerErrorException) thr).getStatusCode().toString(),null,"Internal Server error from Scene7"));
 							log.info("URL: {} | Rubric Status Code: {} | Scene7 Status code: {}",fxgurl, ((HttpServerErrorException) th).getStatusCode().toString(),((HttpServerErrorException) thr).getStatusCode().toString());
 							log.info("--------------------------------------------------------------------------------------------------");	
@@ -108,6 +114,10 @@ public class URLValidatorService {
             StringBuffer header = new StringBuffer();
             header.append("FXG-JSON URL");
             header.append(CSV_SEPARATOR);
+            header.append("SKU");
+            header.append(CSV_SEPARATOR);
+            header.append("Template");
+            header.append(CSV_SEPARATOR);
             header.append("RubricStatusCode");
             header.append(CSV_SEPARATOR);
             header.append("S7StatusCode");
@@ -119,6 +129,10 @@ public class URLValidatorService {
             {
             	StringBuffer oneLine = new StringBuffer();
                 oneLine.append(fxgJsonOutputObject.getUrl());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getSku());
+                oneLine.append(CSV_SEPARATOR);
+                oneLine.append(fxgJsonOutputObject.getTemplate());
                 oneLine.append(CSV_SEPARATOR);
                 oneLine.append(fxgJsonOutputObject.getRubricStatusCode());
                 oneLine.append(CSV_SEPARATOR);
