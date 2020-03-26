@@ -18,7 +18,7 @@ import com.minted.urlvalidator.repository.ProductRepositoryImplementation;
 @Service
 public class FxgJSONURLGeneratorService {
 	
-private static final String HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON = "https://www.minted.com/personalize/fxg/json/";
+private static final String HTTPS_WWW_MINTED_COM_PERSONALIZE_FXG_JSON = "https://www.minted.com/personalize/fxg/json/fresh/";
 	
 	@Autowired
 	ProductRepositoryImplementation productRepositoryImplementation;

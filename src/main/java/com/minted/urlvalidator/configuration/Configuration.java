@@ -21,7 +21,7 @@ public class Configuration {
 	public Executor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(10);
-		executor.setMaxPoolSize(200);
+		executor.setMaxPoolSize(100);
 		executor.setQueueCapacity(2000);
 		executor.setThreadNamePrefix("URLValidator-");
 		executor.setRejectedExecutionHandler(new RejectedExecutionHandlerImpl());
