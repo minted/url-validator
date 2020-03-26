@@ -31,12 +31,7 @@ public class URLValidatorService {
 	@Autowired
 	private EndpointCall endpointCall;
 	
-	
 	private static final String CSV_SEPARATOR = "|";
-	
-	
-			
-	
 	
 	@SuppressWarnings("unchecked")
 	public List<FxgJsonOutputObject> fxgJsonResponseComparator(List<String> urlList) throws InterruptedException, ExecutionException{
